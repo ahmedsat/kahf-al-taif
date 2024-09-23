@@ -1,48 +1,53 @@
 package main
 
 import (
-	"fmt"
+	"embed"
 
 	"github.com/ahmedsat/noor"
-	"github.com/ahmedsat/silah/client"
 )
 
 var (
-	vertexShaderSource = `
-	#version 330
-	in vec3 vp;
-	void main() {
-		gl_Position = vec4(vp, 1.0);
-	}
-	` + "\x00"
-
-	fragmentShaderSource = `
-	#version 330
-	out vec4 frag_colour;
-	void main() {
-		frag_colour = vec4(1, 1, 1, 1);
-	}
-	` + "\x00"
+	vertexShaderSource   = ``
+	fragmentShaderSource = ``
 )
+
+//go:embed shaders/*
+var shaders embed.FS
+
+func init() {
+
+	vertexShaderBytes, err := shaders.ReadFile("shaders/base.vert")
+	if err != nil {
+		panic(err)
+	}
+	vertexShaderSource = string(vertexShaderBytes)
+
+	fragmentShaderBytes, err := shaders.ReadFile("shaders/base.frag")
+	if err != nil {
+		panic(err)
+	}
+	fragmentShaderSource = string(fragmentShaderBytes)
+}
 
 func startClient(url string) (err error) {
 
-	c, err := client.NewClient(url)
-	if err != nil {
-		return err
-	}
+	// c, err := client.NewClient(url)
+	// if err != nil {
+	// 	return err
+	// }
 
-	go func() {
+	// go func() {
 
-		go c.ReceiveMessages()
-		ch := c.GetIncomingChannel()
-		for message := range ch {
-			fmt.Println(message)
-		}
-	}()
+	// 	go c.ReceiveMessages()
+	// 	ch := c.GetIncomingChannel()
+	// 	for message := range ch {
+	// 		fmt.Println(message)
+	// 	}
+	// }()
 
 	noor.Init(noor.Options{
-		Title: "Kahf Al Taif",
+		Title:      "Kahf Al Taif",
+		Background: [3]float32{0.2, 0.3, 0.3},
 	})
 
 	shader, err := noor.CreateShaderProgram(vertexShaderSource, fragmentShaderSource)
@@ -53,9 +58,9 @@ func startClient(url string) (err error) {
 	scene := noor.NewScene()
 	scene.AddObject(noor.NewObject(
 		[]noor.Vertex{
-			{Position: [3]float32{-.5, -.5, 0}},
-			{Position: [3]float32{.5, -.5, 0}},
-			{Position: [3]float32{0, .5, 0}},
+			{Position: [3]float32{-.5, -.5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
+			{Position: [3]float32{.5, -.5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
+			{Position: [3]float32{0, .5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
 		},
 		[]uint32{},
 		&noor.Material{Shader: shader, Textures: []uint32{}},
@@ -67,5 +72,6 @@ func startClient(url string) (err error) {
 
 	})
 
-	return c.Close()
+	// return c.Close()
+	return nil
 }
