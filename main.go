@@ -4,7 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 )
+
+func init() {
+	runtime.LockOSThread()
+}
 
 func main() {
 	var err error

@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"errors"
 
 	"github.com/ahmedsat/noor"
 )
@@ -9,24 +10,48 @@ import (
 var (
 	vertexShaderSource   = ``
 	fragmentShaderSource = ``
+	wallTexture          noor.Texture
+	stoneTexture         noor.Texture
 )
 
-//go:embed shaders/*
-var shaders embed.FS
+//go:embed shaders/* textures/*
+var embedFiles embed.FS
 
-func init() {
+func loadResources() (err error) {
 
-	vertexShaderBytes, err := shaders.ReadFile("shaders/base.vert")
+	vertexShaderBytes, err := embedFiles.ReadFile("shaders/base.vert")
 	if err != nil {
-		panic(err)
+		return errors.Join(err, errors.New("failed to load vertex shader: "))
 	}
 	vertexShaderSource = string(vertexShaderBytes)
 
-	fragmentShaderBytes, err := shaders.ReadFile("shaders/base.frag")
+	fragmentShaderBytes, err := embedFiles.ReadFile("shaders/base.frag")
 	if err != nil {
-		panic(err)
+		return errors.Join(err, errors.New("failed to load fragment shader: "))
 	}
 	fragmentShaderSource = string(fragmentShaderBytes)
+
+	wallTextureFile, err := embedFiles.Open("textures/wall.jpg")
+	if err != nil {
+		return errors.Join(err, errors.New("failed to load wall texture: "))
+	}
+
+	wallTexture, err = noor.LoadTexture(wallTextureFile, "wall")
+	if err != nil {
+		return errors.Join(err, errors.New("failed to load wall texture: "))
+	}
+
+	stoneTextureFile, err := embedFiles.Open("textures/stone.webp")
+	if err != nil {
+		return errors.Join(err, errors.New("failed to load stone texture: "))
+	}
+
+	stoneTexture, err = noor.LoadTexture(stoneTextureFile, "stone")
+	if err != nil {
+		return errors.Join(err, errors.New("failed to load stone texture: "))
+	}
+
+	return
 }
 
 func startClient(url string) (err error) {
@@ -50,27 +75,40 @@ func startClient(url string) (err error) {
 		Background: [3]float32{0.2, 0.3, 0.3},
 	})
 
+	loadResources()
+
 	shader, err := noor.CreateShaderProgram(vertexShaderSource, fragmentShaderSource)
 	if err != nil {
-		return err
+		err = errors.Join(err, errors.New("failed to create shader program: "))
+		return
 	}
 
 	scene := noor.NewScene()
-	scene.AddObject(noor.NewObject(
+
+	obj, err := noor.NewObject(
 		[]noor.Vertex{
-			{Position: [3]float32{-.5, -.5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
-			{Position: [3]float32{.5, -.5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
-			{Position: [3]float32{0, .5, 0}, Color: [3]float32{1.0, 0.5, 0.2}},
+			{Position: [3]float32{0.5, 0.5, 0.0}, Color: [3]float32{1.0, 0.0, 0.0}, TexCoord: [2]float32{1.0, 1.0}},
+			{Position: [3]float32{0.5, -0.5, 0.0}, Color: [3]float32{0.0, 1.0, 0.0}, TexCoord: [2]float32{1.0, 0.0}},
+			{Position: [3]float32{-0.5, -0.5, 0.0}, Color: [3]float32{0.0, 0.0, 1.0}, TexCoord: [2]float32{0.0, 0.0}},
+			{Position: [3]float32{-0.5, 0.5, 0.0}, Color: [3]float32{1.0, 1.0, 0.0}, TexCoord: [2]float32{0.0, 1.0}},
 		},
-		[]uint32{},
-		&noor.Material{Shader: shader, Textures: []uint32{}},
-	))
+		[]uint32{0, 1, 3, 1, 2, 3},
+		&noor.Material{Shader: shader, Textures: []noor.Texture{stoneTexture, wallTexture}},
+	)
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create object: "))
+		return
+	}
 
-	noor.Run(func() {
+	scene.AddObject(obj)
 
+	err = noor.Run(func() {
 		scene.Draw()
-
 	})
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to run: "))
+		return
+	}
 
 	// return c.Close()
 	return nil
