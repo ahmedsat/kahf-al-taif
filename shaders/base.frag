@@ -7,8 +7,10 @@ in vec2 frag_texcoord;
 
 uniform sampler2D wall;
 uniform sampler2D stone;
+uniform sampler2D tennant;
 
 void main() {
-    FragColor = texture(wall, frag_texcoord) * texture(stone, frag_texcoord) * vec4(frag_color, 1.0);
+    // FragColor = texture(wall, frag_texcoord) * texture(stone, frag_texcoord) * vec4(frag_color, 1.0);
+    FragColor = texture(tennant, frag_texcoord);
 }
 

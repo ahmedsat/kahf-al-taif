@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"runtime"
+
+	"github.com/ahmedsat/bayaan"
 )
 
 func init() {
@@ -12,15 +13,15 @@ func init() {
 }
 
 func main() {
+
+	bayaan.SetLevel(bayaan.LoggerLevelTrace)
+
 	var err error
-
-	mode := flag.String("mode", "server", "server or client")
-
+	mode := flag.String("mode", "client", "server or client")
 	url := flag.String("url", "localhost:8080", "url to connect to")
 
+	bayaan.Trace("Parsing command line flags")
 	flag.Parse()
-
-	fmt.Println("Starting", *mode)
 
 	switch *mode {
 	case "server":
@@ -32,7 +33,6 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		bayaan.Fatal("%s", err)
 	}
 }

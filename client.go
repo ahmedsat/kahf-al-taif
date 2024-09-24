@@ -1,58 +1,10 @@
 package main
 
 import (
-	"embed"
 	"errors"
 
 	"github.com/ahmedsat/noor"
 )
-
-var (
-	vertexShaderSource   = ``
-	fragmentShaderSource = ``
-	wallTexture          noor.Texture
-	stoneTexture         noor.Texture
-)
-
-//go:embed shaders/* textures/*
-var embedFiles embed.FS
-
-func loadResources() (err error) {
-
-	vertexShaderBytes, err := embedFiles.ReadFile("shaders/base.vert")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load vertex shader: "))
-	}
-	vertexShaderSource = string(vertexShaderBytes)
-
-	fragmentShaderBytes, err := embedFiles.ReadFile("shaders/base.frag")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load fragment shader: "))
-	}
-	fragmentShaderSource = string(fragmentShaderBytes)
-
-	wallTextureFile, err := embedFiles.Open("textures/wall.jpg")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load wall texture: "))
-	}
-
-	wallTexture, err = noor.LoadTexture(wallTextureFile, "wall")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load wall texture: "))
-	}
-
-	stoneTextureFile, err := embedFiles.Open("textures/stone.webp")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load stone texture: "))
-	}
-
-	stoneTexture, err = noor.LoadTexture(stoneTextureFile, "stone")
-	if err != nil {
-		return errors.Join(err, errors.New("failed to load stone texture: "))
-	}
-
-	return
-}
 
 func startClient(url string) (err error) {
 
@@ -75,11 +27,27 @@ func startClient(url string) (err error) {
 		Background: [3]float32{0.2, 0.3, 0.3},
 	})
 
-	loadResources()
-
-	shader, err := noor.CreateShaderProgram(vertexShaderSource, fragmentShaderSource)
+	shader, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
 	if err != nil {
-		err = errors.Join(err, errors.New("failed to create shader program: "))
+		err = errors.Join(err, errors.New("failed to create shader program: "+"shaders/base.vert"+" and "+"shaders/base.frag"))
+		return
+	}
+
+	stoneTexture, err := noor.NewTextureFromFile("textures/stone.webp", "stone")
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create stone texture: "))
+		return
+	}
+
+	wallTexture, err := noor.NewTextureFromFile("textures/wall.jpg", "wall")
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create wall texture: "))
+		return
+	}
+
+	tennantTexture, err := noor.NewTextureFromFile("textures/StudentNTP_Aurora-Tennant_x1140.jpg", "tennant")
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create tennant texture: "))
 		return
 	}
 
@@ -93,7 +61,7 @@ func startClient(url string) (err error) {
 			{Position: [3]float32{-0.5, 0.5, 0.0}, Color: [3]float32{1.0, 1.0, 0.0}, TexCoord: [2]float32{0.0, 1.0}},
 		},
 		[]uint32{0, 1, 3, 1, 2, 3},
-		&noor.Material{Shader: shader, Textures: []noor.Texture{stoneTexture, wallTexture}},
+		&noor.Material{Shader: shader, Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture}},
 	)
 	if err != nil {
 		err = errors.Join(err, errors.New("failed to create object: "))
