@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 
+	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
 )
 
@@ -55,10 +56,10 @@ func startClient(url string) (err error) {
 
 	obj, err := noor.NewObject(
 		[]noor.Vertex{
-			{Position: [3]float32{0.5, 0.5, 0.0}, Color: [3]float32{1.0, 0.0, 0.0}, TexCoord: [2]float32{1.0, 1.0}},
-			{Position: [3]float32{0.5, -0.5, 0.0}, Color: [3]float32{0.0, 1.0, 0.0}, TexCoord: [2]float32{1.0, 0.0}},
-			{Position: [3]float32{-0.5, -0.5, 0.0}, Color: [3]float32{0.0, 0.0, 1.0}, TexCoord: [2]float32{0.0, 0.0}},
-			{Position: [3]float32{-0.5, 0.5, 0.0}, Color: [3]float32{1.0, 1.0, 0.0}, TexCoord: [2]float32{0.0, 1.0}},
+			noor.NewVertex(madar.NewVector(0.5, 0.5, 0.0), madar.NewVector(1.0, 0.0, 0.0), madar.NewVector(1.0, 1.0)),
+			noor.NewVertex(madar.NewVector(0.5, -0.5, 0.0), madar.NewVector(0.0, 1.0, 0.0), madar.NewVector(1.0, 0.0)),
+			noor.NewVertex(madar.NewVector(-0.5, -0.5, 0.0), madar.NewVector(0.0, 0.0, 1.0), madar.NewVector(0.0, 0.0)),
+			noor.NewVertex(madar.NewVector(-0.5, 0.5, 0.0), madar.NewVector(1.0, 1.0, 0.0), madar.NewVector(0.0, 1.0)),
 		},
 		[]uint32{0, 1, 3, 1, 2, 3},
 		&noor.Material{Shader: shader, Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture}},
