@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/ahmedsat/bayaan"
@@ -10,6 +11,20 @@ import (
 
 func init() {
 	runtime.LockOSThread()
+
+	// working directory is where we ar searching for files	like:
+	// shaders, textures, etc.
+	wd := os.Getenv("WORKING_DIRECTORY")
+	fmt.Println(wd)
+	if wd != "" {
+		err := os.Chdir(wd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	fmt.Println(os.Getwd())
+
 }
 
 func main() {
