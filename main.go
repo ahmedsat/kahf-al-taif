@@ -29,7 +29,7 @@ func init() {
 
 func main() {
 
-	bayaan.SetLevel(bayaan.LoggerLevelTrace)
+	// bayaan.SetLevel(bayaan.LoggerLevelTrace)
 
 	var err error
 	mode := flag.String("mode", "client", "server or client")

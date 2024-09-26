@@ -28,7 +28,13 @@ func startClient(url string) (err error) {
 		Background: [3]float32{0.2, 0.3, 0.3},
 	})
 
-	shader, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
+	shader1, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create shader program: "+"shaders/base.vert"+" and "+"shaders/base.frag"))
+		return
+	}
+
+	shader2, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
 	if err != nil {
 		err = errors.Join(err, errors.New("failed to create shader program: "+"shaders/base.vert"+" and "+"shaders/base.frag"))
 		return
@@ -67,28 +73,52 @@ func startClient(url string) (err error) {
 		return
 	}
 
-	material := &noor.Material{
-		Shader:   shader,
+	material1 := &noor.Material{
+		Shader:   shader1,
 		Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture},
 	}
 
-	obj, err := noor.NewObject(mesh, material, madar.NewMatrix4x4())
+	material2 := &noor.Material{
+		Shader:   shader2,
+		Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture},
+	}
+
+	obj1, err := noor.NewObject(mesh, material1, madar.NewMatrix4())
 	if err != nil {
 		err = errors.Join(err, errors.New("failed to create object: "))
 		return
 	}
 
-	scene.AddObject(obj)
+	obj2, err := noor.NewObject(mesh, material2, madar.NewMatrix4())
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create object: "))
+		return
+	}
+
+	scene.AddObject(obj1)
+	scene.AddObject(obj2)
+
+	obj1.ModelMatrix.Translate(.5, 0, 0)
+	obj2.ModelMatrix.Translate(-.5, 0, 0)
 
 	err = noor.Run(func() {
-		obj.UpdateMatrix(func(m *madar.Matrix4x4) {
-			m.Translate(0.0001, 0, 0)
+		obj1.UpdateMatrix(func(m *madar.Matrix4) {
+			// m.Translate(0.0001, 0, 0)
 			// m.RotateY(0.01)
 			// m.RotateX(0.01)
-			// m.RotateZ(0.01)
+			m.RotateZ(0.001)
 		})
+
+		obj2.UpdateMatrix(func(m *madar.Matrix4) {
+			// m.Translate(-0.0001, 0, 0)
+			// m.RotateY(0.01)
+			// m.RotateX(0.01)
+			m.RotateZ(-0.001)
+		})
+
 		scene.Draw()
 	})
+
 	if err != nil {
 		err = errors.Join(err, errors.New("failed to run: "))
 		return
