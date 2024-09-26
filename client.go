@@ -54,16 +54,25 @@ func startClient(url string) (err error) {
 
 	scene := noor.NewScene()
 
-	obj, err := noor.NewObject(
-		[]noor.Vertex{
-			noor.NewVertex(madar.NewVector(0.5, 0.5, 0.0), madar.NewVector(1.0, 0.0, 0.0), madar.NewVector(1.0, 1.0)),
-			noor.NewVertex(madar.NewVector(0.5, -0.5, 0.0), madar.NewVector(0.0, 1.0, 0.0), madar.NewVector(1.0, 0.0)),
-			noor.NewVertex(madar.NewVector(-0.5, -0.5, 0.0), madar.NewVector(0.0, 0.0, 1.0), madar.NewVector(0.0, 0.0)),
-			noor.NewVertex(madar.NewVector(-0.5, 0.5, 0.0), madar.NewVector(1.0, 1.0, 0.0), madar.NewVector(0.0, 1.0)),
-		},
+	mesh, err := noor.NewMesh([]noor.Vertex{
+		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.0}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{1.0, 1.0}),
+		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.0}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{1.0, 0.0}),
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.0}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{0.0, 0.0}),
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.0}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),
+	},
 		[]uint32{0, 1, 3, 1, 2, 3},
-		&noor.Material{Shader: shader, Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture}},
 	)
+	if err != nil {
+		err = errors.Join(err, errors.New("failed to create tennant mesh: "))
+		return
+	}
+
+	material := &noor.Material{
+		Shader:   shader,
+		Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture},
+	}
+
+	obj, err := noor.NewObject(mesh, material, madar.NewMatrix4x4())
 	if err != nil {
 		err = errors.Join(err, errors.New("failed to create object: "))
 		return
@@ -72,6 +81,12 @@ func startClient(url string) (err error) {
 	scene.AddObject(obj)
 
 	err = noor.Run(func() {
+		obj.UpdateMatrix(func(m *madar.Matrix4x4) {
+			m.Translate(0.0001, 0, 0)
+			// m.RotateY(0.01)
+			// m.RotateX(0.01)
+			// m.RotateZ(0.01)
+		})
 		scene.Draw()
 	})
 	if err != nil {

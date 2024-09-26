@@ -11,6 +11,6 @@ uniform sampler2D tennant;
 
 void main() {
     // FragColor = texture(wall, frag_texcoord) * texture(stone, frag_texcoord) * vec4(frag_color, 1.0);
-    FragColor = texture(tennant, frag_texcoord);
+    FragColor = texture(stone, frag_texcoord);
 }
 
