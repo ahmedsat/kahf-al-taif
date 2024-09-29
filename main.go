@@ -15,7 +15,6 @@ func init() {
 	// working directory is where we ar searching for files	like:
 	// shaders, textures, etc.
 	wd := os.Getenv("WORKING_DIRECTORY")
-	fmt.Println(wd)
 	if wd != "" {
 		err := os.Chdir(wd)
 		if err != nil {
@@ -23,7 +22,6 @@ func init() {
 			return
 		}
 	}
-	fmt.Println(os.Getwd())
 
 }
 

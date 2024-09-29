@@ -1,129 +1,153 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
 )
 
+const (
+	windowWidth  = 800
+	windowHeight = 600
+	windowTitle  = "Kahf Al Taif"
+)
+
 func startClient(url string) (err error) {
 
-	// c, err := client.NewClient(url)
-	// if err != nil {
-	// 	return err
-	// }
+	if err := noor.Init(noor.Options{
+		Width:      windowWidth,
+		Height:     windowHeight,
+		Title:      windowTitle,
+		Background: [3]float32{0.1, 0.1, 0.1},
+	}); err != nil {
+		return err
+	}
 
-	// go func() {
-
-	// 	go c.ReceiveMessages()
-	// 	ch := c.GetIncomingChannel()
-	// 	for message := range ch {
-	// 		fmt.Println(message)
-	// 	}
-	// }()
-
-	noor.Init(noor.Options{
-		Title:      "Kahf Al Taif",
-		Background: [3]float32{0.2, 0.3, 0.3},
-	})
-
-	shader1, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
+	// Create shader program
+	shader, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
 	if err != nil {
-		err = errors.Join(err, errors.New("failed to create shader program: "+"shaders/base.vert"+" and "+"shaders/base.frag"))
-		return
+		return err
 	}
 
-	shader2, err := noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
+	// Load textures
+	textures, err := loadTextures()
 	if err != nil {
-		err = errors.Join(err, errors.New("failed to create shader program: "+"shaders/base.vert"+" and "+"shaders/base.frag"))
-		return
+		return err
 	}
 
-	stoneTexture, err := noor.NewTextureFromFile("textures/stone.webp", "stone")
+	// Create cube mesh
+	mesh, err := createCubeMesh()
 	if err != nil {
-		err = errors.Join(err, errors.New("failed to create stone texture: "))
-		return
+		return err
 	}
 
-	wallTexture, err := noor.NewTextureFromFile("textures/wall.jpg", "wall")
+	// Create material
+	material := &noor.Material{
+		Shader:   shader,
+		Textures: textures,
+	}
+
+	// Create cube object
+	cube, err := noor.NewObject(mesh, material, madar.Identity())
 	if err != nil {
-		err = errors.Join(err, errors.New("failed to create wall texture: "))
-		return
+		return err
 	}
 
-	tennantTexture, err := noor.NewTextureFromFile("textures/StudentNTP_Aurora-Tennant_x1140.jpg", "tennant")
-	if err != nil {
-		err = errors.Join(err, errors.New("failed to create tennant texture: "))
-		return
-	}
+	// Create camera
+	camera := noor.NewCamera(
+		madar.Vector3{-3, -3, -3},
+		madar.Vector3{},
+		madar.Vector3{0, 1, 0},
+		windowWidth/windowHeight,
+		noor.Perspective)
 
-	scene := noor.NewScene()
+	// Create scene
+	scene := noor.NewScene(camera, cube)
 
-	mesh, err := noor.NewMesh([]noor.Vertex{
-		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.0}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{1.0, 1.0}),
-		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.0}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{1.0, 0.0}),
-		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.0}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{0.0, 0.0}),
-		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.0}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),
-	},
-		[]uint32{0, 1, 3, 1, 2, 3},
-	)
-	if err != nil {
-		err = errors.Join(err, errors.New("failed to create tennant mesh: "))
-		return
-	}
-
-	material1 := &noor.Material{
-		Shader:   shader1,
-		Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture},
-	}
-
-	material2 := &noor.Material{
-		Shader:   shader2,
-		Textures: []noor.Texture{stoneTexture, wallTexture, tennantTexture},
-	}
-
-	obj1, err := noor.NewObject(mesh, material1, madar.NewMatrix4())
-	if err != nil {
-		err = errors.Join(err, errors.New("failed to create object: "))
-		return
-	}
-
-	obj2, err := noor.NewObject(mesh, material2, madar.NewMatrix4())
-	if err != nil {
-		err = errors.Join(err, errors.New("failed to create object: "))
-		return
-	}
-
-	scene.AddObject(obj1)
-	scene.AddObject(obj2)
-
-	obj1.ModelMatrix.Translate(.5, 0, 0)
-	obj2.ModelMatrix.Translate(-.5, 0, 0)
-
-	err = noor.Run(func() {
-		obj1.UpdateMatrix(func(m *madar.Matrix4) {
-			// m.Translate(0.0001, 0, 0)
-			// m.RotateY(0.01)
-			// m.RotateX(0.01)
-			m.RotateZ(0.001)
-		})
-
-		obj2.UpdateMatrix(func(m *madar.Matrix4) {
-			// m.Translate(-0.0001, 0, 0)
-			// m.RotateY(0.01)
-			// m.RotateX(0.01)
-			m.RotateZ(-0.001)
-		})
-
+	// Main loop
+	return noor.Run(func() {
+		updateScene(scene, cube)
 		scene.Draw()
 	})
+}
 
-	if err != nil {
-		err = errors.Join(err, errors.New("failed to run: "))
-		return
+func loadTextures() ([]noor.Texture, error) {
+	textureFiles := []string{"textures/stone.webp", "textures/wall.jpg", "textures/StudentNTP_Aurora-Tennant_x1140.jpg"}
+	textures := make([]noor.Texture, len(textureFiles))
+
+	for i, file := range textureFiles {
+		texture, err := noor.NewTextureFromFile(file, file)
+		if err != nil {
+			return nil, err
+		}
+		textures[i] = texture
 	}
 
-	// return c.Close()
-	return nil
+	return textures, nil
+}
+
+func createCubeMesh() (*noor.Mesh, error) {
+	vertices := []noor.Vertex{
+		// Front face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}), // Bottom left
+		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.5}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{1.0, 0.0}),  // Bottom right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{1.0, 1.0}),   // Top right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{1.0, 1.0}),   // Top right (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.5}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),  // Top left
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}), // Bottom left (duplicate for second triangle)
+
+		// Back face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, -0.5}, madar.Vector3{1.0, 0.0, 1.0}, madar.Vector2{1.0, 0.0}), // Bottom left
+		noor.NewVertex(madar.Vector3{0.5, -0.5, -0.5}, madar.Vector3{0.0, 1.0, 1.0}, madar.Vector2{0.0, 0.0}),  // Bottom right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{0.0, 1.0}),   // Top right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{0.0, 1.0}),   // Top right (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, -0.5}, madar.Vector3{0.5, 0.5, 0.5}, madar.Vector2{1.0, 1.0}),  // Top left
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, -0.5}, madar.Vector3{1.0, 0.0, 1.0}, madar.Vector2{1.0, 0.0}), // Bottom left (duplicate for second triangle)
+
+		// Left face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom left
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.5}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),   // Front top left
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, -0.5}, madar.Vector3{0.5, 0.5, 0.5}, madar.Vector2{1.0, 1.0}),  // Back top left
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, -0.5}, madar.Vector3{0.5, 0.5, 0.5}, madar.Vector2{1.0, 1.0}),  // Back top left (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, -0.5}, madar.Vector3{1.0, 0.0, 1.0}, madar.Vector2{1.0, 0.0}), // Back bottom left
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom left (duplicate for second triangle)
+
+		// Right face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.5}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{0.0, 1.0}),   // Front top right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{1.0, 1.0}),  // Back top right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{1.0, 1.0}),  // Back top right (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{0.5, -0.5, -0.5}, madar.Vector3{0.0, 1.0, 1.0}, madar.Vector2{1.0, 0.0}), // Back bottom right
+		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.5}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom right (duplicate for second triangle)
+
+		// Top face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.5}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),  // Front bottom left
+		noor.NewVertex(madar.Vector3{0.5, 0.5, 0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{1.0, 1.0}),   // Front bottom right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{1.0, 0.0}),  // Back bottom right
+		noor.NewVertex(madar.Vector3{0.5, 0.5, -0.5}, madar.Vector3{1.0, 1.0, 1.0}, madar.Vector2{1.0, 0.0}),  // Back bottom right (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, -0.5}, madar.Vector3{0.5, 0.5, 0.5}, madar.Vector2{0.0, 0.0}), // Back bottom left
+		noor.NewVertex(madar.Vector3{-0.5, 0.5, 0.5}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}),  // Front bottom left (duplicate for second triangle)
+
+		// Bottom face (2 triangles, 6 vertices)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom left
+		noor.NewVertex(madar.Vector3{0.5, -0.5, 0.5}, madar.Vector3{0.0, 1.0, 0.0}, madar.Vector2{1.0, 0.0}),   // Front bottom right
+		noor.NewVertex(madar.Vector3{0.5, -0.5, -0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{1.0, 1.0}),  // Back bottom right
+		noor.NewVertex(madar.Vector3{0.5, -0.5, -0.5}, madar.Vector3{0.0, 0.0, 1.0}, madar.Vector2{1.0, 1.0}),  // Back bottom right (duplicate for second triangle)
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, -0.5}, madar.Vector3{1.0, 1.0, 0.0}, madar.Vector2{0.0, 1.0}), // Back bottom left
+		noor.NewVertex(madar.Vector3{-0.5, -0.5, 0.5}, madar.Vector3{1.0, 0.0, 0.0}, madar.Vector2{0.0, 0.0}),  // Front bottom left (duplicate for second triangle)
+	}
+
+	return noor.NewMesh(vertices, []uint32{})
+}
+
+func updateScene(scene *noor.Scene, cube *noor.Object) {
+	// Update cube rotation
+	cube.UpdateModelMatrix(func() {
+		// cube.ModelMatrix = cube.ModelMatrix.
+		// Multiply(madar.RotationX(0.01)).
+		// Multiply(madar.RotationY(0.01)).
+		// Multiply(madar.RotationZ(0.01))
+
+	})
+
+	scene.UpdateCamera()
 }
