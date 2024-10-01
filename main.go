@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/ahmedsat/bayaan"
+	"github.com/ahmedsat/kahf-al-taif/client"
 )
 
 func init() {
@@ -27,7 +28,7 @@ func init() {
 
 func main() {
 
-	// bayaan.SetLevel(bayaan.LoggerLevelTrace)
+	bayaan.SetLevel(bayaan.LoggerLevelDebug)
 
 	var err error
 	mode := flag.String("mode", "client", "server or client")
@@ -40,7 +41,7 @@ func main() {
 	case "server":
 		err = startServer(*url)
 	case "client":
-		err = startClient(*url)
+		err = client.StartClient(*url)
 	default:
 		err = fmt.Errorf("invalid mode: %s", *mode)
 	}
