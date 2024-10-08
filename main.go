@@ -20,10 +20,12 @@ func init() {
 		err := os.Chdir(wd)
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 	}
 
+	wd, _ = os.Getwd()
+	fmt.Println("Working directory:", wd)
 }
 
 func main() {
