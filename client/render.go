@@ -7,6 +7,7 @@ import (
 	"github.com/ahmedsat/kahf-al-taif/utils"
 	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
+	"github.com/ahmedsat/noor/input"
 )
 
 const (
@@ -73,6 +74,8 @@ func render() (err error) {
 	noor.Init(windowWidth, windowHeight, windowTitle, false)
 	defer noor.Terminate()
 
+	input.LockMouse()
+
 	sh, err = noor.CreateShaderProgramFromFiles("shaders/base.vert", "shaders/base.frag")
 	if err != nil {
 		return errors.Join(err, errors.New("failed to create shader program"))
@@ -98,6 +101,31 @@ func render() (err error) {
 			scene.Draw()
 		},
 		func(dt float32) {
+
+			if input.IsKeyHeld(input.KeyW) {
+				scene.Camera.MoveForward(dt * 5)
+			}
+			if input.IsKeyHeld(input.KeyS) {
+				scene.Camera.MoveForward(-dt * 5)
+			}
+			if input.IsKeyHeld(input.KeyA) {
+				scene.Camera.MoveRight(-dt * 5)
+			}
+			if input.IsKeyHeld(input.KeyD) {
+				scene.Camera.MoveRight(dt * 5)
+			}
+
+			if input.IsKeyHeld(input.KeyE) {
+				scene.Camera.MoveUp(dt * 5)
+			}
+			if input.IsKeyHeld(input.KeyQ) {
+				scene.Camera.MoveUp(-dt * 5)
+			}
+
+			// make camera look around with mouse
+			mouseDelta := input.GetMouseDelta()
+			scene.Camera.Rotate(mouseDelta.X*dt, mouseDelta.Y*dt, 0)
+			scene.Camera.Rotate(0, 0, 0)
 
 		},
 		time.Second/60,
