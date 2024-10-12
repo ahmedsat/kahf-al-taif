@@ -16,38 +16,39 @@ const (
 	windowTitle  = "Kahf Al Taif"
 )
 
-var vertices = []float32{
+var vertices = []noor.Vertex{
 	// Front face
-	-1.0, -1.0, 1.0, 0.0, 0.0, // Bottom-left
-	1.0, -1.0, 1.0, 1.0, 0.0, // Bottom-right
-	1.0, 1.0, 1.0, 1.0, 1.0, // Top-right
-	-1.0, 1.0, 1.0, 0.0, 1.0, // Top-left
+	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0}, // Bottom-left - Red
+	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},  // Bottom-right - Green
+	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},   // Top-right - Blue
+	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 1.0},  // Top-left - Yellow
 	// Back face
-	-1.0, -1.0, -1.0, 1.0, 0.0, // Bottom-left
-	1.0, -1.0, -1.0, 0.0, 0.0, // Bottom-right
-	1.0, 1.0, -1.0, 0.0, 1.0, // Top-right
-	-1.0, 1.0, -1.0, 1.0, 1.0, // Top-left
+	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 0.0}, // Bottom-left - Magenta
+	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 1.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-right - Cyan
+	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 0.0, V: 1.0},   // Top-right - Orange
+	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 1.0, V: 1.0},  // Top-left - Gray
 
 	// Left face
-	-1.0, 1.0, 1.0, 1.0, 0.0, // Top-right
-	-1.0, 1.0, -1.0, 1.0, 1.0, // Top-left
-	-1.0, -1.0, -1.0, 0.0, 1.0, // Bottom-left
-	-1.0, -1.0, 1.0, 0.0, 0.0, // Bottom-right
+	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 0.0},   // Top-right - Blue
+	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 1.0, V: 1.0},  // Top-left - Orange
+	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 1.0}, // Bottom-left - Gray
+	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-right - Green
 	// Right face
-	1.0, 1.0, 1.0, 1.0, 0.0, // Top-left
-	1.0, 1.0, -1.0, 1.0, 1.0, // Top-right
-	1.0, -1.0, -1.0, 0.0, 1.0, // Bottom-right
-	1.0, -1.0, 1.0, 0.0, 0.0, // Bottom-left
+	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Top-left - Red
+	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Green
+	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 0.0, V: 1.0}, // Bottom-right - Blue
+	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Yellow
+
 	// Top face
-	-1.0, 1.0, -1.0, 0.0, 1.0, // Top-left
-	1.0, 1.0, -1.0, 1.0, 1.0, // Top-right
-	1.0, 1.0, 1.0, 1.0, 0.0, // Bottom-right
-	-1.0, 1.0, 1.0, 0.0, 0.0, // Bottom-left
+	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 0.0, V: 1.0}, // Top-left - Magenta
+	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Cyan
+	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Bottom-right - Orange
+	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Gray
 	// Bottom face
-	-1.0, -1.0, -1.0, 0.0, 1.0, // Top-left
-	1.0, -1.0, -1.0, 1.0, 1.0, // Top-right
-	1.0, -1.0, 1.0, 1.0, 0.0, // Bottom-right
-	-1.0, -1.0, 1.0, 0.0, 0.0, // Bottom-left
+	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 1.0}, // Top-left - Gray
+	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Magenta
+	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Bottom-right - Green
+	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Yellow
 }
 
 var indices = []uint32{
@@ -86,13 +87,13 @@ func render() (err error) {
 		return errors.Join(err, errors.New("failed to load wall image"))
 	}
 
-	wall, err = noor.NewTexture(wallImage, "wall")
+	wall, err = noor.NewTexture(wallImage, "uTexture")
 	if err != nil {
 		return errors.Join(err, errors.New("failed to create wall texture"))
 	}
 
 	scene := noor.Scene{
-		Objects: createRandomCubes(50),
+		Objects: []*noor.Object{createCenterCube()},
 		Camera:  *noor.NewCamera(windowWidth, windowHeight),
 	}
 
@@ -164,4 +165,16 @@ func createRandomCubes(n int) []*noor.Object {
 
 	}
 	return cubes
+}
+
+func createCenterCube() *noor.Object {
+	cube := noor.NewObject(vertices, indices, sh, wall)
+
+	cube.SetPosition(0, 0, 0)
+
+	cube.SetScale(1, 1, 1)
+
+	cube.SetRotation(0, 0, 0)
+
+	return cube
 }

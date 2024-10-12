@@ -1,18 +1,20 @@
 #version 450 core
 
-layout(location = 0) in vec3 vp;
-layout(location = 1) in vec2 texcoord;
+layout(location = 0) in vec4 aPosition;   
+layout(location = 1) in vec4 aColor;      
+layout(location = 2) in vec2 aTexCoord;   
 
-out vec2 frag_texcoord;
+out vec4 vColor;        
+out vec2 vTexCoord;     
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 uModel;    
+uniform mat4 uView;     
+uniform mat4 uProjection; 
 
 void main() {
-
-    frag_texcoord = texcoord;
-
-    gl_Position =  projection *  view * model * vec4(vp, 1.0);
-
+    
+    gl_Position = uProjection * uView * uModel * aPosition;
+    
+    vColor = aColor;
+    vTexCoord = aTexCoord;
 }

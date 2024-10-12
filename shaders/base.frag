@@ -1,14 +1,15 @@
 #version 450 core
 
-out vec4 FragColor;
+in vec4 vColor;       
+in vec2 vTexCoord;    
 
-in vec2 frag_texcoord;
+out vec4 FragColor;   
 
-uniform sampler2D wall;
-uniform sampler2D stone;
-uniform sampler2D tennant;
+uniform sampler2D uTexture; 
 
 void main() {
-    FragColor = texture(wall, frag_texcoord);
+   
+    vec4 texColor = texture(uTexture, vTexCoord);
+   
+    FragColor = texColor  * vColor ;
 }
-
