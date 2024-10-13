@@ -4,14 +4,15 @@ go 1.23.1
 
 require (
 	github.com/ahmedsat/bayaan v0.0.0-00010101000000-000000000000
+	github.com/ahmedsat/madar v0.0.0-00010101000000-000000000000
 	github.com/ahmedsat/noor v0.0.0-00010101000000-000000000000
 	github.com/ahmedsat/silah v0.0.0
-	github.com/ahmedsat/madar v0.0.0-00010101000000-000000000000 
 )
 
 require (
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/image v0.20.0 // indirect
 )
 

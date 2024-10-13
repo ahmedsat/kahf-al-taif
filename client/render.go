@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"math"
 	"time"
 
 	"github.com/ahmedsat/kahf-al-taif/utils"
@@ -16,59 +17,10 @@ const (
 	windowTitle  = "Kahf Al Taif"
 )
 
-var vertices = []noor.Vertex{
-	// Front face
-	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0}, // Bottom-left - Red
-	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},  // Bottom-right - Green
-	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},   // Top-right - Blue
-	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 1.0},  // Top-left - Yellow
-	// Back face
-	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 0.0}, // Bottom-left - Magenta
-	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 1.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-right - Cyan
-	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 0.0, V: 1.0},   // Top-right - Orange
-	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 1.0, V: 1.0},  // Top-left - Gray
-
-	// Left face
-	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 0.0},   // Top-right - Blue
-	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 1.0, V: 1.0},  // Top-left - Orange
-	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 1.0}, // Bottom-left - Gray
-	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-right - Green
-	// Right face
-	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Top-left - Red
-	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Green
-	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.0, G: 0.0, B: 1.0, A: 1.0, U: 0.0, V: 1.0}, // Bottom-right - Blue
-	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Yellow
-
-	// Top face
-	{X: -1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 0.0, V: 1.0}, // Top-left - Magenta
-	{X: 1.0, Y: 1.0, Z: -1.0, W: 1.0, R: 0.0, G: 1.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Cyan
-	{X: 1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 1.0, G: 0.5, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Bottom-right - Orange
-	{X: -1.0, Y: 1.0, Z: 1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Gray
-	// Bottom face
-	{X: -1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 0.5, G: 0.5, B: 0.5, A: 1.0, U: 0.0, V: 1.0}, // Top-left - Gray
-	{X: 1.0, Y: -1.0, Z: -1.0, W: 1.0, R: 1.0, G: 0.0, B: 1.0, A: 1.0, U: 1.0, V: 1.0},  // Top-right - Magenta
-	{X: 1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 0.0, G: 1.0, B: 0.0, A: 1.0, U: 1.0, V: 0.0},   // Bottom-right - Green
-	{X: -1.0, Y: -1.0, Z: 1.0, W: 1.0, R: 1.0, G: 1.0, B: 0.0, A: 1.0, U: 0.0, V: 0.0},  // Bottom-left - Yellow
-}
-
-var indices = []uint32{
-	// Front face
-	0, 1, 2, 2, 3, 0,
-	// Back face
-	4, 5, 6, 6, 7, 4,
-	// Left face
-	8, 9, 10, 10, 11, 8,
-	// Right face
-	12, 13, 14, 14, 15, 12,
-	// Top face
-	16, 17, 18, 18, 19, 16,
-	// Bottom face
-	20, 21, 22, 22, 23, 20,
-}
-
 var (
 	sh   noor.Shader
 	wall noor.Texture
+	cam  *noor.Camera
 )
 
 func render() (err error) {
@@ -92,42 +44,47 @@ func render() (err error) {
 		return errors.Join(err, errors.New("failed to create wall texture"))
 	}
 
+	sphereVertices, sphereIndices := generateSphereVertices(30, 30, 1)
+
+	cam = noor.NewCamera(windowWidth, windowHeight)
+	cam.SetPosition(0, 0, 5)
+	cam.SetTarget(madar.Vector3{X: 0, Y: 0, Z: 0})
+	cam.SetMode(noor.Orbit)
+	cam.SetOrbitSpeed(0.1, 0.1, 0.1)
+	cam.SetMovementSpeed(5.0)
+	cam.SetMouseSensitivity(0.002)
+
 	scene := noor.Scene{
-		Objects: []*noor.Object{createCenterCube()},
-		Camera:  *noor.NewCamera(windowWidth, windowHeight),
+		Objects: []*noor.Object{noor.NewObject(sphereVertices, sphereIndices, sh, wall)},
+		Camera:  *cam,
 	}
+
+	lastTime := time.Now()
 
 	noor.Run(
 		func() {
 			scene.Draw()
 		},
 		func(dt float32) {
+			currentTime := time.Now()
+			deltaTime := float32(currentTime.Sub(lastTime).Seconds())
+			lastTime = currentTime
 
-			if input.IsKeyHeld(input.KeyW) {
-				scene.Camera.MoveForward(dt * 5)
-			}
-			if input.IsKeyHeld(input.KeyS) {
-				scene.Camera.MoveForward(-dt * 5)
-			}
-			if input.IsKeyHeld(input.KeyA) {
-				scene.Camera.MoveRight(-dt * 5)
-			}
-			if input.IsKeyHeld(input.KeyD) {
-				scene.Camera.MoveRight(dt * 5)
-			}
+			cam.HandleInput(deltaTime)
 
-			if input.IsKeyHeld(input.KeyE) {
-				scene.Camera.MoveUp(dt * 5)
-			}
-			if input.IsKeyHeld(input.KeyQ) {
-				scene.Camera.MoveUp(-dt * 5)
+			// Update camera in the scene
+			scene.Camera = *cam
+
+			// Check for mode change
+			if input.IsKeyPressed(input.Key1) {
+				cam.SetMode(noor.Free)
+			} else if input.IsKeyPressed(input.Key2) {
+				cam.SetMode(noor.Orbit)
 			}
 
-			// make camera look around with mouse
-			mouseDelta := input.GetMouseDelta()
-			scene.Camera.Rotate(mouseDelta.X*dt, mouseDelta.Y*dt, 0)
-			scene.Camera.Rotate(0, 0, 0)
-
+			// Handle zooming
+			scroll := input.GetMouseScroll()
+			cam.ZoomIn(scroll.Y * 0.1)
 		},
 		time.Second/60,
 	)
@@ -135,46 +92,45 @@ func render() (err error) {
 	return
 }
 
-func createRandomCubes(n int) []*noor.Object {
-	var cubes []*noor.Object
+func generateSphereVertices(latitudeBands, longitudeBands int, radius float32) ([]noor.Vertex, []uint32) {
+	var vertices []noor.Vertex
+	var indices []uint32
 
-	rand := madar.NewRand(0x0000000000000000, 0xffffffffffffffff)
+	// Generate vertices
+	for lat := 0; lat <= latitudeBands; lat++ {
+		theta := float64(lat) * math.Pi / float64(latitudeBands)
+		sinTheta := float32(math.Sin(theta))
+		cosTheta := float32(math.Cos(theta))
 
-	for i := 0; i < n; i++ {
-		cube := noor.NewObject(vertices, indices, sh, wall)
+		for lon := 0; lon <= longitudeBands; lon++ {
+			phi := float64(lon) * 2.0 * math.Pi / float64(longitudeBands)
+			sinPhi := float32(math.Sin(phi))
+			cosPhi := float32(math.Cos(phi))
 
-		cube.SetPosition(
-			rand.RandFloatRange(-50, 50),
-			rand.RandFloatRange(-50, 50),
-			rand.RandFloatRange(-50, 50),
-		)
+			x := cosPhi * sinTheta
+			y := cosTheta
+			z := sinPhi * sinTheta
+			u := float32(lon) / float32(longitudeBands)
+			v := float32(lat) / float32(latitudeBands)
 
-		cube.SetScale(
-			rand.RandFloatRange(1, 10),
-			rand.RandFloatRange(1, 10),
-			rand.RandFloatRange(1, 10),
-		)
-
-		cube.SetRotation(
-			rand.RandFloatRange(0, 360),
-			rand.RandFloatRange(0, 360),
-			rand.RandFloatRange(0, 360),
-		)
-
-		cubes = append(cubes, cube)
-
+			vertices = append(vertices, noor.Vertex{
+				X: radius * x, Y: radius * y, Z: radius * z, W: 1.0,
+				R: u, G: v, B: 1.0 - u, A: 1.0, // Color
+				U: u, V: v, // Texture coordinates
+			})
+		}
 	}
-	return cubes
-}
 
-func createCenterCube() *noor.Object {
-	cube := noor.NewObject(vertices, indices, sh, wall)
+	// Generate indices
+	for lat := 0; lat < latitudeBands; lat++ {
+		for lon := 0; lon < longitudeBands; lon++ {
+			first := uint32(lat*(longitudeBands+1) + lon)
+			second := uint32((lat+1)*(longitudeBands+1) + lon)
 
-	cube.SetPosition(0, 0, 0)
+			indices = append(indices, first, second, first+1)
+			indices = append(indices, second, second+1, first+1)
+		}
+	}
 
-	cube.SetScale(1, 1, 1)
-
-	cube.SetRotation(0, 0, 0)
-
-	return cube
+	return vertices, indices
 }
