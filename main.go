@@ -30,7 +30,7 @@ func init() {
 
 func main() {
 
-	bayaan.SetLevel(bayaan.LoggerLevelDebug)
+	bayaan.SetLevel(bayaan.LoggerLevelCount)
 
 	var err error
 	mode := flag.String("mode", "client", "server or client")
