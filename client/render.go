@@ -1,48 +1,76 @@
 package client
 
-import (
-	"image/color"
-	"math"
+// todo:
 
+import (
+	"fmt"
+	"image/color"
+	"time"
+
+	"github.com/ahmedsat/kahf-al-taif/utils"
+	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/ahmedsat/noor/meshes"
 )
 
 const (
-	windowWidth  = 800
-	windowHeight = 600
-	windowTitle  = "Kahf Al Taif"
+	windowTitle = "Kahf Al Taif"
 )
 
-func render() (err error) {
+var (
+	wallTexture noor.Texture
+)
 
+func Init() (err error) {
 	err = noor.Init(noor.InitSettings{
-		WindowWidth:     windowWidth,
-		WindowHeight:    windowHeight,
-		WindowTitle:     windowTitle,
-		WindowResizable: false,
-		GLMajorVersion:  4,
-		GLMinorVersion:  5,
-		GLCoreProfile:   true,
-		DebugLines:      false,
-		BackGround:      colorFromInt(0x0d3642ff),
+		WindowTitle:   windowTitle,
+		GLCoreProfile: true,
+		DebugLines:    false,
+		BackGround:    colorFromInt(0x0d3642ff),
 	})
 	if err != nil {
 		return err
 	}
-	defer noor.Terminate()
 
-	mesh := noor.CreateMesh(noor.CreateMeshInfo{
-		Vertices: []float32{
-			-0.5, -0.5, 0.18, 0.55, 0.80,
-			0.5, -0.5, 0.18, 0.55, 0.80,
-			0.0, 0.5, 0.18, 0.55, 0.80,
-		},
-		Sizes: []int32{
-			2,
-			3,
-		},
+	return
+}
+
+func LoadTextures() (err error) {
+	wallImage, err := utils.LoadImages("textures/wall.jpg")
+	if err != nil {
+		return
+	}
+
+	wallTexture, err = noor.NewTexture(wallImage, "uWallTexture", noor.TextureParameters{
+		WrappingS:    noor.Repeat,
+		WrappingT:    noor.Repeat,
+		BorderColor:  color.RGBA{R: 255, A: 255},
+		FilteringMin: noor.LinearMipmapLinear,
+		FilteringMag: noor.Linear,
+		UseMipmaps:   true,
 	})
+
+	if err != nil {
+		return
+	}
+	return
+}
+
+func cleanup() {
+	wallTexture.Delete()
+	noor.Terminate()
+}
+
+func render() (err error) {
+
+	err = Init()
+	if err != nil {
+		return err
+	}
+
+	defer cleanup()
+
+	mesh := meshes.CreateCube()
 
 	sh, err := noor.CreateShaderProgramFromFiles("shaders/test.vert", "shaders/test.frag")
 	if err != nil {
@@ -50,11 +78,49 @@ func render() (err error) {
 	}
 	defer sh.Delete()
 
-	for !noor.IsWindowShouldClose() {
-		sh.Activate()
+	err = LoadTextures()
+	if err != nil {
+		return err
+	}
 
-		sh.SetUniform1f("uScaler", float32(math.Sin(glfw.GetTime())+1))
-		mesh.Draw()
+	sh.Activate()
+
+	obj := noor.CreateObject(noor.ObjectCreateInfo{
+		Mesh:     mesh,
+		Shader:   sh,
+		Textures: []noor.Texture{ /* wallTexture */ },
+	})
+
+	camera := noor.NewCamera(noor.CreateCameraInfo{
+		Position:   madar.Vector3{X: 0, Y: 0, Z: 2},
+		Projection: noor.Perspective,
+		Mode:       noor.Free,
+		Width:      800,
+		Height:     600,
+	})
+	defer camera.Cleanup()
+
+	camera.SetControls(noor.CameraControls{
+		BaseMovementSpeed: 10.0,
+		MouseSensitivity:  1,
+		FOVSpeed:          25,
+		// ... other settings
+	})
+
+	// Initial timestamp
+	lastTime := time.Now()
+	for !noor.IsWindowShouldClose() {
+		// Calculate delta time
+		currentTime := time.Now()
+		deltaTime := currentTime.Sub(lastTime).Seconds() // Convert to seconds
+		lastTime = currentTime
+
+		camera.ProcessInput(float32(deltaTime))
+		camera.Update()
+
+		obj.Draw(*camera)
+
+		fmt.Printf("FOV: %f\r", camera.GetFOV())
 	}
 
 	return nil

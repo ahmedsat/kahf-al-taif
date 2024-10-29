@@ -2,7 +2,11 @@ package utils
 
 import (
 	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
+
+	_ "golang.org/x/image/webp"
 )
 
 func LoadImages(path string) (img image.Image, err error) {
