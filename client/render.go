@@ -3,13 +3,13 @@ package client
 // todo:
 
 import (
-	"fmt"
 	"image/color"
 	"time"
 
 	"github.com/ahmedsat/kahf-al-taif/utils"
 	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
+	"github.com/ahmedsat/noor/input"
 	"github.com/ahmedsat/noor/meshes"
 )
 
@@ -91,21 +91,21 @@ func render() (err error) {
 		Textures: []noor.Texture{ /* wallTexture */ },
 	})
 
-	camera := noor.NewCamera(noor.CreateCameraInfo{
-		Position:   madar.Vector3{X: 0, Y: 0, Z: 2},
-		Projection: noor.Perspective,
-		Mode:       noor.Free,
-		Width:      800,
-		Height:     600,
-	})
-	defer camera.Cleanup()
+	projection := &noor.Perspective{
+		Fov:    100,
+		Aspect: 4 / 3,
+		Near:   0.1,
+		Far:    10,
+	}
 
-	camera.SetControls(noor.CameraControls{
-		BaseMovementSpeed: 10.0,
-		MouseSensitivity:  1,
-		FOVSpeed:          25,
-		// ... other settings
-	})
+	camera := noor.NewCamera(
+		madar.Vector3{Z: 1},
+		madar.Vector3{X: -1, Y: -1, Z: -1},
+		madar.Vector3{X: 0, Y: 1, Z: 0},
+		projection,
+	)
+	defer camera.Cleanup()
+	camera.LookAt(madar.Vector3{})
 
 	// Initial timestamp
 	lastTime := time.Now()
@@ -115,12 +115,34 @@ func render() (err error) {
 		deltaTime := currentTime.Sub(lastTime).Seconds() // Convert to seconds
 		lastTime = currentTime
 
-		camera.ProcessInput(float32(deltaTime))
-		camera.Update()
+		camera.Update(float32(deltaTime))
 
 		obj.Draw(*camera)
 
-		fmt.Printf("FOV: %f\r", camera.GetFOV())
+		if input.IsKeyPressed(input.KeyW) {
+			camera.MoveForward(float32(deltaTime))
+		}
+
+		if input.IsKeyPressed(input.KeyS) {
+			camera.MoveBackward(float32(deltaTime))
+		}
+
+		if input.IsKeyPressed(input.KeyA) {
+			camera.MoveLeft(float32(deltaTime))
+		}
+
+		if input.IsKeyPressed(input.KeyD) {
+			camera.MoveRight(float32(deltaTime))
+		}
+
+		if input.IsKeyPressed(input.KeyQ) {
+			camera.MoveUp(float32(deltaTime))
+		}
+
+		if input.IsKeyPressed(input.KeyE) {
+			camera.MoveDown(float32(deltaTime))
+		}
+
 	}
 
 	return nil
