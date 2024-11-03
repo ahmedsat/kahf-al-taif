@@ -99,7 +99,7 @@ func render() (err error) {
 	}
 
 	camera := noor.NewCamera(
-		madar.Vector3{Z: 1},
+		madar.Vector3{Z: 2},
 		madar.Vector3{X: -1, Y: -1, Z: -1},
 		madar.Vector3{X: 0, Y: 1, Z: 0},
 		projection,
@@ -116,6 +116,12 @@ func render() (err error) {
 		lastTime = currentTime
 
 		camera.Update(float32(deltaTime))
+
+		obj.Rotate(madar.Vector3{
+			X: 90,
+			Y: 90,
+			Z: 90,
+		}.Scale(float32(deltaTime)))
 
 		obj.Draw(*camera)
 
