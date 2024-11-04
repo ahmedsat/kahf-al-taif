@@ -107,6 +107,11 @@ func render() (err error) {
 	defer camera.Cleanup()
 	camera.LookAt(madar.Vector3{})
 
+	sh.SetUniform1f("uAmbientStrength", 0.1)
+	sh.SetUniform3f("uAmbientColor", 1, 1, 1)
+	sh.SetUniform3f("uDiffuseLightPosition", 0, 0, 2)
+	sh.SetUniform3f("uDiffuseLightColor", 1, 1, 1)
+
 	// Initial timestamp
 	lastTime := time.Now()
 	for !noor.IsWindowShouldClose() {
@@ -119,9 +124,9 @@ func render() (err error) {
 
 		obj.Rotate(madar.Vector3{
 			X: 90,
-			Y: 90,
-			Z: 90,
-		}.Scale(float32(deltaTime)))
+			Y: 180,
+			Z: 270,
+		}.Scale(float32(deltaTime / 10)))
 
 		obj.Draw(*camera)
 
