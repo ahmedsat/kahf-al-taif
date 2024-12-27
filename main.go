@@ -11,6 +11,7 @@ import (
 )
 
 func init() {
+
 	runtime.LockOSThread()
 
 	// working directory is where we ar searching for files	like:
@@ -25,18 +26,40 @@ func init() {
 	}
 
 	wd, _ = os.Getwd()
-	fmt.Println("Working directory:", wd)
+
+	// open log file
+	f, err := os.OpenFile("../log.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		bayaan.Fatal(err.Error(), bayaan.Fields{
+			"mode": "server",
+			"url":  "localhost:8080",
+		})
+	}
+
+	bayaan.Setup(
+		bayaan.WithLevel(bayaan.LoggerLevelDebug),
+		bayaan.WithTimeFormat("2006-01-02 15:04:05"),
+		bayaan.WithOutput(f, false, false),
+	)
+
+	bayaan.Info("Working directory", bayaan.Fields{
+		"workingDirectory": wd,
+	})
+
 }
 
 func main() {
 
-	bayaan.SetLevel(bayaan.LoggerLevelCount)
-
 	var err error
+
 	mode := flag.String("mode", "client", "server or client")
 	url := flag.String("url", "localhost:8080", "url to connect to")
 
-	bayaan.Trace("Parsing command line flags")
+	bayaan.Debug("Parsing command line flags", bayaan.Fields{
+		"mode": *mode,
+		"url":  *url,
+	})
+
 	flag.Parse()
 
 	switch *mode {
@@ -49,6 +72,9 @@ func main() {
 	}
 
 	if err != nil {
-		bayaan.Fatal("%s", err)
+		bayaan.Fatal(err.Error(), bayaan.Fields{
+			"mode": *mode,
+			"url":  *url,
+		})
 	}
 }

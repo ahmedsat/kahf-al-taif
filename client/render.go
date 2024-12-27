@@ -6,11 +6,9 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/ahmedsat/kahf-al-taif/utils"
 	"github.com/ahmedsat/madar"
 	"github.com/ahmedsat/noor"
 	"github.com/ahmedsat/noor/input"
-	"github.com/ahmedsat/noor/meshes"
 )
 
 const (
@@ -18,15 +16,17 @@ const (
 )
 
 var (
-	wallTexture noor.Texture
+	diffuseMap  *noor.Texture
+	specularMap *noor.Texture
 )
 
 func Init() (err error) {
 	err = noor.Init(noor.InitSettings{
-		WindowTitle:   windowTitle,
-		GLCoreProfile: true,
-		DebugLines:    false,
-		BackGround:    colorFromInt(0x0d3642ff),
+		WindowTitle:         windowTitle,
+		BackGround:          colorFromInt(0x0d3642ff),
+		GLCoreProfile:       true,
+		EnableMultiSampling: true,
+		VSyncEnabled:        true,
 	})
 	if err != nil {
 		return err
@@ -36,28 +36,20 @@ func Init() (err error) {
 }
 
 func LoadTextures() (err error) {
-	wallImage, err := utils.LoadImages("textures/wall.jpg")
-	if err != nil {
-		return
-	}
+	// Load diffuse map
+	diffuseMap = noor.DefaultDiffuseTextureMap()
+	diffuseMap.Name = "uMaterial.diffuseMap"
 
-	wallTexture, err = noor.NewTexture(wallImage, "uWallTexture", noor.TextureParameters{
-		WrappingS:    noor.Repeat,
-		WrappingT:    noor.Repeat,
-		BorderColor:  color.RGBA{R: 255, A: 255},
-		FilteringMin: noor.LinearMipmapLinear,
-		FilteringMag: noor.Linear,
-		UseMipmaps:   true,
-	})
+	// Load specular map
+	specularMap = noor.DefaultSpecularTextureMap()
+	specularMap.Name = "uMaterial.specularMap"
 
-	if err != nil {
-		return
-	}
-	return
+	return nil
 }
 
 func cleanup() {
-	wallTexture.Delete()
+	diffuseMap.Delete()
+	specularMap.Delete()
 	noor.Terminate()
 }
 
@@ -70,7 +62,16 @@ func render() (err error) {
 
 	defer cleanup()
 
-	mesh := meshes.CreateCube()
+	mesh, err := noor.LoadMesh("objects/car.obj", &noor.LoadMeshOptions{
+		FlipUVs:     false,
+		CalcNormals: true,
+		Scale:       0.05,
+	})
+	if err != nil {
+		return err
+	}
+
+	// mesh := meshes.CreateCube()
 
 	sh, err := noor.CreateShaderProgramFromFiles("shaders/test.vert", "shaders/test.frag")
 	if err != nil {
@@ -99,7 +100,7 @@ func render() (err error) {
 	}
 
 	camera := noor.NewCamera(
-		madar.Vector3{Z: 2},
+		madar.Vector3{Z: 2.0},
 		madar.Vector3{X: -1, Y: -1, Z: -1},
 		madar.Vector3{X: 0, Y: 1, Z: 0},
 		projection,
@@ -107,10 +108,19 @@ func render() (err error) {
 	defer camera.Cleanup()
 	camera.LookAt(madar.Vector3{})
 
-	sh.SetUniform1f("uAmbientStrength", 0.1)
-	sh.SetUniform3f("uAmbientColor", 1, 1, 1)
-	sh.SetUniform3f("uDiffuseLightPosition", 0, 0, 2)
-	sh.SetUniform3f("uDiffuseLightColor", 1, 1, 1)
+	sh.SetUniform3f("uMainLight.position", madar.Vector3{Z: 2.0})
+	sh.SetUniform3f("uMainLight.color", madar.Vector3{X: 1.0, Y: 0.95, Z: 0.85})
+	sh.SetUniform1f("uMainLight.ambient", 0.2)
+	sh.SetUniform1f("uMainLight.diffuse", 0.8)
+	sh.SetUniform1f("uMainLight.specular", 0.6)
+
+	diffuseMap.Activate(sh, 0, diffuseMap.Name)
+	specularMap.Activate(sh, 1, diffuseMap.Name)
+	sh.SetUniform1f("uMaterial.shininess", 32)
+
+	// sh.SetUniform1b("uEnableFog", true)
+	// sh.SetUniform3f("uFogColor", madar.Vector3{X: 0.7, Y: 0.7, Z: 0.8})
+	// sh.SetUniform1f("uFogDensity", 0.5)
 
 	// Initial timestamp
 	lastTime := time.Now()

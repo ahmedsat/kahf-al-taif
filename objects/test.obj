@@ -1,0 +1,33 @@
+# A simple OBJ file with a triangle, a quad, and a polygon
+
+# Vertex positions (v x y z)
+v 0.0 0.0 0.0
+v 1.0 0.0 0.0
+v 0.5 1.0 0.0
+v 1.5 1.0 0.0
+v 2.0 0.0 0.0
+
+# Texture coordinates (vt u v)
+vt 0.0 0.0
+vt 1.0 0.0
+vt 0.5 1.0
+vt 1.5 1.0
+vt 2.0 0.0
+
+# Normals (vn x y z)
+vn 0.0 0.0 1.0
+vn 0.0 0.0 1.0
+vn 0.0 0.0 1.0
+vn 0.0 0.0 1.0
+vn 0.0 0.0 1.0
+
+# A triangle (3 vertices)
+#f 1/1/1 2/2/2 3/3/3
+#f 1 2 3
+
+# A quad (4 vertices)
+#f 1/1/1 2/2/2 4/4/4 3/3/3
+
+# A polygon (5 vertices)
+f 1/1/1 2/2/2 5/5/5 4/4/4 3/3/3
+#f 1 2 5 4 3
